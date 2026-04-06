@@ -2,33 +2,57 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
-import { Mail, Lock } from 'lucide-react-native';
-import { colors } from '../../theme/colors';
+import { Mail, Lock, AlertCircle } from 'lucide-react-native';
+import { useTheme } from '../../theme/ThemeContext';
+
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
+import { authService } from '../../services/authService';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export const LoginScreen = ({ navigation }: any) => {
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const { login } = useAuthStore();
 
-  const handleLogin = () => {
-    // Navigate to Dashboard upon clicking login
-    navigation.replace('Main');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMsg('Please enter email and password');
+      return;
+    }
+    
+    setIsLoading(true);
+    setErrorMsg('');
+    try {
+      const response = await authService.login({ email, password });
+      if (response.success) {
+        await login({ user: response.data.user, accessToken: response.data.accessToken });
+      } else {
+        setErrorMsg(response.message || 'Login failed');
+      }
+    } catch (error: any) {
+      setErrorMsg(error.response?.data?.message || 'Network error occurred. Pls try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.innerContent}
         >
           <View style={styles.headerContainer}>
-            <View style={styles.logoPlaceholder}>
+            <View style={[styles.logoPlaceholder, { backgroundColor: colors.primary }]}>
               <Text style={styles.logoText}>🍽️</Text>
             </View>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to your account</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+            <Text style={[styles.subtitle, { color: colors.subtext }]}>Sign in to your account</Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -41,7 +65,7 @@ export const LoginScreen = ({ navigation }: any) => {
               onChangeText={setEmail}
               leftIcon={<Mail color={colors.subtext} size={moderateScale(20)} />}
             />
-            
+
             <Input
               label="Password"
               placeholder="Enter your password"
@@ -52,30 +76,27 @@ export const LoginScreen = ({ navigation }: any) => {
             />
 
             <View style={styles.forgotPasswordContainer}>
-              <Button 
-                title="Forgot Password?" 
-                variant="ghost" 
+              <Button
+                title="Forgot Password?"
+                variant="ghost"
                 onPress={() => navigation.navigate('ForgotPassword')}
                 style={styles.forgotPasswordButton}
-                textStyle={styles.forgotPasswordText}
+                textStyle={[styles.forgotPasswordText, { color: colors.primary }]}
               />
             </View>
 
-            <Button 
-              title="Sign In" 
+            {errorMsg ? (
+              <View style={[styles.errorContainer, { backgroundColor: colors.error + '15', borderColor: colors.error }]}>
+                <AlertCircle color={colors.error} size={moderateScale(20)} style={{ marginRight: scale(8) }} />
+                <Text style={[styles.errorText, { color: colors.error }]}>{errorMsg}</Text>
+              </View>
+            ) : null}
+
+            <Button
+              title="Sign In"
               onPress={handleLogin}
-              style={styles.loginButton}
-            />
-          </View>
-          
-          <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <Button 
-              title="Sign Up" 
-              variant="ghost" 
-              onPress={() => {}} 
-              style={styles.signupButton}
-              textStyle={styles.signupText}
+              loading={isLoading}
+              style={[styles.loginButton, { shadowColor: colors.primary }]}
             />
           </View>
         </KeyboardAvoidingView>
@@ -87,7 +108,6 @@ export const LoginScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   innerContent: {
     flex: 1,
@@ -101,7 +121,6 @@ const styles = StyleSheet.create({
   logoPlaceholder: {
     width: moderateScale(80),
     height: moderateScale(80),
-    backgroundColor: colors.primary,
     borderRadius: moderateScale(40),
     justifyContent: 'center',
     alignItems: 'center',
@@ -113,19 +132,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: moderateScale(28),
     fontWeight: 'bold',
-    color: colors.text,
     marginBottom: verticalScale(8),
   },
   subtitle: {
     fontSize: moderateScale(15),
-    color: colors.subtext,
   },
   formContainer: {
     width: '100%',
   },
   forgotPasswordContainer: {
     alignItems: 'flex-end',
-    marginBottom: verticalScale(24),
+    marginBottom: verticalScale(12),
   },
   forgotPasswordButton: {
     height: undefined,
@@ -133,12 +150,24 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: moderateScale(14),
-    color: colors.primary,
     fontWeight: '600',
+  },
+  errorContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    padding: moderateScale(12),
+    borderRadius: moderateScale(12),
+    borderWidth: 1,
+    marginBottom: verticalScale(20),
+    alignItems: 'center',
+  },
+  errorText: {
+    flex: 1,
+    fontSize: moderateScale(14),
+    fontWeight: '500',
   },
   loginButton: {
     width: '100%',
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -151,7 +180,6 @@ const styles = StyleSheet.create({
     marginTop: verticalScale(40),
   },
   footerText: {
-    color: colors.text,
     fontSize: moderateScale(14),
   },
   signupButton: {
@@ -160,7 +188,6 @@ const styles = StyleSheet.create({
   },
   signupText: {
     fontSize: moderateScale(14),
-    color: colors.secondary,
     fontWeight: 'bold',
   },
 });

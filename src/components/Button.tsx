@@ -6,9 +6,10 @@ import {
   ActivityIndicator,
   ViewStyle,
   TextStyle,
+  StyleProp,
 } from 'react-native';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -16,8 +17,8 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   icon?: React.ReactNode;
 }
 
@@ -31,6 +32,8 @@ export const Button: React.FC<ButtonProps> = ({
   textStyle,
   icon,
 }) => {
+  const { colors } = useTheme();
+
   const getBackgroundStyle = () => {
     if (disabled) return { backgroundColor: colors.border };
     switch (variant) {
@@ -52,14 +55,18 @@ export const Button: React.FC<ButtonProps> = ({
     switch (variant) {
       case 'primary':
       case 'secondary':
-        return { color: colors.background };
+        return { color: isDarkVariant() ? '#FFFFFF' : colors.text }; // Ensuring visibility
       case 'outline':
       case 'ghost':
         return { color: colors.primary };
       default:
-        return { color: colors.background };
+        return { color: '#FFFFFF' };
     }
   };
+
+  const isDarkVariant = () => variant === 'primary' || variant === 'secondary';
+
+  const textColor = getTextStyle().color;
 
   return (
     <TouchableOpacity
@@ -69,11 +76,11 @@ export const Button: React.FC<ButtonProps> = ({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color={getTextStyle().color} />
+        <ActivityIndicator color={textColor} />
       ) : (
         <>
           {icon && icon}
-          <Text style={[styles.text, getTextStyle(), textStyle, icon && styles.textWithIcon]}>
+          <Text style={[styles.text, { color: textColor }, textStyle, icon ? styles.textWithIcon : null]}>
             {title}
           </Text>
         </>
@@ -84,8 +91,8 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: verticalScale(48),
-    borderRadius: moderateScale(12),
+    height: verticalScale(45),
+    borderRadius: moderateScale(14),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -93,7 +100,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: moderateScale(16),
-    fontWeight: '600',
+    fontWeight: 'bold',
     letterSpacing: 0.3,
   },
   textWithIcon: {

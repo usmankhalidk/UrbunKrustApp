@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -26,23 +26,25 @@ export const Input: React.FC<InputProps> = ({
   style,
   ...props
 }) => {
+  const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [secureText, setSecureText] = useState(isPassword);
 
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: colors.text }]}>{label}</Text>}
       <View
         style={[
           styles.inputContainer,
-          isFocused && styles.inputFocused,
-          error && styles.inputError,
+          { backgroundColor: colors.inputBackground },
+          isFocused && { ...styles.inputFocused, borderColor: colors.primary, backgroundColor: colors.surface },
+          error && { ...styles.inputError, borderColor: colors.error },
           style,
         ]}
       >
         {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.text }]}
           placeholderTextColor={colors.subtext}
           secureTextEntry={secureText}
           onFocus={(e) => {
@@ -69,7 +71,7 @@ export const Input: React.FC<InputProps> = ({
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>}
     </View>
   );
 };
@@ -81,40 +83,35 @@ const styles = StyleSheet.create({
   label: {
     fontSize: moderateScale(14),
     fontWeight: '500',
-    color: colors.text,
     marginBottom: verticalScale(6),
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.inputBackground,
     borderWidth: 1.5,
     borderColor: 'transparent',
     borderRadius: moderateScale(12),
-    height: verticalScale(52),
-    paddingHorizontal: scale(14),
+    height: verticalScale(45),
+    paddingHorizontal: scale(12),
   },
   inputFocused: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surface,
+    // Colors handled in component
   },
   inputError: {
-    borderColor: colors.error,
+    // Colors handled in component
   },
   leftIconContainer: {
-    marginRight: scale(10),
+    marginRight: scale(8),
   },
   input: {
     flex: 1,
     fontSize: moderateScale(15),
-    color: colors.text,
     height: '100%',
   },
   eyeIcon: {
-    paddingLeft: scale(10),
+    paddingLeft: scale(8),
   },
   errorText: {
-    color: colors.error,
     fontSize: moderateScale(12),
     marginTop: verticalScale(4),
   },

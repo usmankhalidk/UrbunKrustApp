@@ -2,14 +2,16 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, ShoppingBag, User } from 'lucide-react-native';
 import { DashboardScreen } from '../screens/main/DashboardScreen';
-import { colors } from '../theme/colors';
+import { ProfileScreen } from '../screens/main/ProfileScreen';
+import { CreateOrderScreen } from '../screens/main/CreateOrderScreen';
+import { useTheme } from '../theme/ThemeContext';
 import { moderateScale } from 'react-native-size-matters';
 
 const Tab = createBottomTabNavigator();
 
-const DummyScreen = () => null; // Placeholder for other tabs
-
 export const MainNavigator = () => {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -30,19 +32,20 @@ export const MainNavigator = () => {
         component={DashboardScreen} 
         options={{
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
-          tabBarLabel: 'Home'
+          tabBarLabel: 'Orders'
         }}
       />
       <Tab.Screen 
         name="Cart" 
-        component={DummyScreen} 
+        component={CreateOrderScreen} 
         options={{
           tabBarIcon: ({ color, size }) => <ShoppingBag color={color} size={size} />,
+          tabBarLabel: 'POS'
         }}
       />
       <Tab.Screen 
         name="Profile" 
-        component={DummyScreen} 
+        component={ProfileScreen} 
         options={{
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
