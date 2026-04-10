@@ -28,6 +28,7 @@ import {
 import { useTheme } from '../../theme/ThemeContext';
 import { posService, PosMenuItem, PosCategory, PosDeal, PosTable, PosCounter, PosVariant } from '../../services/posService';
 import { useCartStore } from '../../store/useCartStore';
+import { ImageWithSkeleton } from '../../components/ImageWithSkeleton';
 
 const TYPE_TABS = [
   { key: 'Menu Items', icon: 'utensils' },
@@ -43,6 +44,7 @@ export const CreateOrderScreen = () => {
 
   // Global Cart State
   const cart = useCartStore();
+  const scrollRef = useRef<ScrollView>(null);
 
   // Data State
   const [categories, setCategories] = useState<PosCategory[]>([]);
@@ -52,6 +54,7 @@ export const CreateOrderScreen = () => {
   const [counters, setCounters] = useState<PosCounter[]>([]); // Counters
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
   // UI Flow State
   const [activeTypeTab, setActiveTypeTab] = useState('Menu Items');
@@ -131,6 +134,7 @@ export const CreateOrderScreen = () => {
         dealId: null,
         variantInfo: null,
       });
+      showToast(`Added ${product.name}`, 'success');
     }
   };
 
@@ -150,6 +154,7 @@ export const CreateOrderScreen = () => {
           priceModifier: parseFloat(variant.priceModifier) || 0,
         },
       });
+      showToast(`Added ${selectedProduct.name} (${variant.name})`, 'success');
     }
     setVariantModalVisible(false);
     setSelectedProduct(null);
@@ -166,9 +171,12 @@ export const CreateOrderScreen = () => {
       dealId: deal.id,
       variantInfo: null,
     });
+    showToast(`Added ${deal.name}`, 'success');
   };
 
   const handlePlaceOrder = async () => {
+    setAttemptedSubmit(true);
+    
     if (cart.items.length === 0) {
       showToast('Basket is empty. Add items first.', 'error');
       return;
@@ -179,6 +187,14 @@ export const CreateOrderScreen = () => {
     }
     if (activeOrderType === 'DINE_IN' && !selectedTableId) {
       showToast('Please select a table for Dine-in orders.', 'error');
+      return;
+    }
+    if (!customerName.trim()) {
+      showToast('Please enter customer name.', 'error');
+      return;
+    }
+    if (!customerPhone.trim()) {
+      showToast('Please enter customer phone.', 'error');
       return;
     }
     if (activeOrderType === 'DELIVERY' && !deliveryAddress.trim()) {
@@ -259,7 +275,7 @@ export const CreateOrderScreen = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
-      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
         
         {/* ── TOP TABS (Menu / Deals) ── */}
         <View style={[styles.topTabsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -348,8 +364,13 @@ export const CreateOrderScreen = () => {
           {activeTypeTab === 'Menu Items' ? (
             filteredItems.length > 0 ? (
               filteredItems.map((item) => (
-                <TouchableOpacity key={item.id} style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => handleProductPress(item)}>
-                  <View style={[styles.productImageBox, { backgroundColor: colors.border }]}>
+                <TouchableOpacity key={item.id} style={[styles.productCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} activeOpacity={0.7} onPress={() => handleProductPress(item)}>
+                  <View style={[styles.productImageBox, { backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' }]}>
+                    {item.image ? (
+                      <ImageWithSkeleton source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
+                    ) : (
+                      <UtensilsCrossed color={colors.subtext} size={28} opacity={0.4} />
+                    )}
                     <View style={[styles.codeTag, { backgroundColor: colors.primary }]}>
                       <Text style={styles.codeTagText}>{item.itemCode?.toUpperCase() || 'ITEM'}</Text>
                     </View>
@@ -366,9 +387,14 @@ export const CreateOrderScreen = () => {
           ) : (
             filteredDeals.length > 0 ? (
               filteredDeals.map((deal) => (
-                <TouchableOpacity key={deal.id} style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => handleDealPress(deal)}>
-                  <View style={[styles.productImageBox, { backgroundColor: colors.border }]}>
-                    <View style={[styles.codeTag, { backgroundColor: colors.secondary }]}>
+                <TouchableOpacity key={deal.id} style={[styles.productCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} activeOpacity={0.7} onPress={() => handleDealPress(deal)}>
+                  <View style={[styles.productImageBox, { backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' }]}>
+                    {(deal as any).image ? (
+                      <ImageWithSkeleton source={{ uri: (deal as any).image }} style={styles.productImage} resizeMode="cover" />
+                    ) : (
+                      <Tag color={colors.subtext} size={28} opacity={0.4} />
+                    )}
+                    <View style={[styles.codeTag, { backgroundColor: colors.secondary || colors.primary }]}>
                       <Text style={styles.codeTagText}>DEAL</Text>
                     </View>
                   </View>
@@ -410,23 +436,23 @@ export const CreateOrderScreen = () => {
           {/* Dropdowns */}
           <View style={styles.twoColRow}>
             <View style={styles.colGroup}>
-              <Text style={[styles.fieldLabel, { color: colors.subtext }]}>COUNTER</Text>
-              <TouchableOpacity style={[styles.selectBox, { borderColor: colors.border }]} onPress={() => setCounterModalVisible(true)}>
+              <Text style={[styles.fieldLabel, { color: (attemptedSubmit && !selectedCounterId) ? '#EF4444' : colors.subtext }]}>COUNTER *</Text>
+              <TouchableOpacity style={[styles.selectBox, { borderColor: (attemptedSubmit && !selectedCounterId) ? '#EF4444' : colors.border }]} onPress={() => setCounterModalVisible(true)}>
                 <Text style={[styles.selectText, { color: selectedCounterId ? colors.text : colors.subtext }]}>
                   {counters.find(c => c.id === selectedCounterId)?.name || 'Select Counter'}
                 </Text>
-                <ChevronDown color={colors.subtext} size={14} />
+                <ChevronDown color={(attemptedSubmit && !selectedCounterId) ? '#EF4444' : colors.subtext} size={14} />
               </TouchableOpacity>
             </View>
 
             {activeOrderType === 'DINE_IN' && (
               <View style={styles.colGroup}>
-                <Text style={[styles.fieldLabel, { color: colors.subtext }]}>TABLE</Text>
-                <TouchableOpacity style={[styles.selectBox, { borderColor: colors.border }]} onPress={() => setTableModalVisible(true)}>
+                <Text style={[styles.fieldLabel, { color: (attemptedSubmit && !selectedTableId) ? '#EF4444' : colors.subtext }]}>TABLE *</Text>
+                <TouchableOpacity style={[styles.selectBox, { borderColor: (attemptedSubmit && !selectedTableId) ? '#EF4444' : colors.border }]} onPress={() => setTableModalVisible(true)}>
                   <Text style={[styles.selectText, { color: selectedTableId ? colors.text : colors.subtext }]}>
                     {tables.find(t => t.id === selectedTableId)?.tableNumber || 'Select Table'}
                   </Text>
-                  <ChevronDown color={colors.subtext} size={14} />
+                  <ChevronDown color={(attemptedSubmit && !selectedTableId) ? '#EF4444' : colors.subtext} size={14} />
                 </TouchableOpacity>
               </View>
             )}
@@ -434,22 +460,22 @@ export const CreateOrderScreen = () => {
 
           {/* Name + Phone */}
           <View style={styles.twoColRow}>
-            <View style={[styles.textFieldBox, { borderColor: colors.border }]}>
-              <User color={colors.subtext} size={13} style={{ marginRight: 6 }} />
+            <View style={[styles.textFieldBox, { borderColor: (attemptedSubmit && !customerName.trim()) ? '#EF4444' : colors.border }]}>
+              <User color={(attemptedSubmit && !customerName.trim()) ? '#EF4444' : colors.subtext} size={13} style={{ marginRight: 6 }} />
               <TextInput
                 style={[styles.fieldInput, { color: colors.text }]}
-                placeholder="Name"
-                placeholderTextColor={colors.subtext}
+                placeholder="Name *"
+                placeholderTextColor={(attemptedSubmit && !customerName.trim()) ? '#EF4444aa' : colors.subtext}
                 value={customerName}
                 onChangeText={setCustomerName}
               />
             </View>
-            <View style={[styles.textFieldBox, { borderColor: colors.border }]}>
-              <Phone color={colors.subtext} size={13} style={{ marginRight: 6 }} />
+            <View style={[styles.textFieldBox, { borderColor: (attemptedSubmit && !customerPhone.trim()) ? '#EF4444' : colors.border }]}>
+              <Phone color={(attemptedSubmit && !customerPhone.trim()) ? '#EF4444' : colors.subtext} size={13} style={{ marginRight: 6 }} />
               <TextInput
                 style={[styles.fieldInput, { color: colors.text }]}
-                placeholder="Phone"
-                placeholderTextColor={colors.subtext}
+                placeholder="Phone *"
+                placeholderTextColor={(attemptedSubmit && !customerPhone.trim()) ? '#EF4444aa' : colors.subtext}
                 keyboardType="phone-pad"
                 value={customerPhone}
                 onChangeText={setCustomerPhone}
@@ -459,12 +485,12 @@ export const CreateOrderScreen = () => {
 
           {/* Delivery Address */}
           {activeOrderType === 'DELIVERY' && (
-            <View style={[styles.textFieldBox, { borderColor: colors.border, marginHorizontal: scale(12), marginTop: 0 }]}>
-              <MapPin color={colors.subtext} size={13} style={{ marginRight: 6 }} />
+            <View style={[styles.textFieldBox, { borderColor: (attemptedSubmit && !deliveryAddress.trim()) ? '#EF4444' : colors.border, marginHorizontal: scale(12), marginTop: 0 }]}>
+              <MapPin color={(attemptedSubmit && !deliveryAddress.trim()) ? '#EF4444' : colors.subtext} size={13} style={{ marginRight: 6 }} />
               <TextInput
                 style={[styles.fieldInput, { color: colors.text }]}
-                placeholder="Delivery Address"
-                placeholderTextColor={colors.subtext}
+                placeholder="Delivery Address *"
+                placeholderTextColor={(attemptedSubmit && !deliveryAddress.trim()) ? '#EF4444aa' : colors.subtext}
                 value={deliveryAddress}
                 onChangeText={setDeliveryAddress}
               />
@@ -759,6 +785,22 @@ export const CreateOrderScreen = () => {
         </Animated.View>
       )}
 
+      {/* ── FLOATING CART BAR ── */}
+      {cart.items.length > 0 && (
+        <View style={[styles.floatingCartBar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+          <View>
+            <Text style={[styles.floatingCartTitle, { color: colors.text }]}>{cart.items.length} Items</Text>
+            <Text style={[styles.floatingCartTotal, { color: colors.primary }]}>Total: Rs. {cart.getTotal().toFixed(2)}</Text>
+          </View>
+          <TouchableOpacity 
+            style={[styles.floatingCartBtn, { backgroundColor: colors.primary }]}
+            onPress={() => scrollRef.current?.scrollToEnd({ animated: true })}
+          >
+            <Text style={styles.floatingCartBtnText}>Review & Place</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
     </SafeAreaView>
   );
 };
@@ -820,13 +862,22 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: '48%',
-    borderWidth: 1,
-    borderRadius: moderateScale(10),
+    borderWidth: 0.5,
+    borderRadius: moderateScale(12),
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   productImageBox: {
-    height: verticalScale(70),
+    height: verticalScale(90),
     width: '100%',
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
   },
   codeTag: {
     position: 'absolute',
@@ -849,10 +900,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   card: {
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderRadius: moderateScale(12),
     marginBottom: verticalScale(12),
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   orderTypeRow: {
     flexDirection: 'row',
@@ -1090,5 +1146,38 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(13),
     fontWeight: '600',
     flex: 1,
+  },
+  floatingCartBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(12),
+    borderTopWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 8,
+  },
+  floatingCartTitle: {
+    fontSize: moderateScale(12),
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  floatingCartTotal: {
+    fontSize: moderateScale(15),
+    fontWeight: '900',
+  },
+  floatingCartBtn: {
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(10),
+    borderRadius: moderateScale(8),
+  },
+  floatingCartBtnText: {
+    color: '#FFF',
+    fontSize: moderateScale(13),
+    fontWeight: '800',
+    letterSpacing: 0.5,
   }
 });

@@ -38,15 +38,36 @@ export const Button: React.FC<ButtonProps> = ({
     if (disabled) return { backgroundColor: colors.border };
     switch (variant) {
       case 'primary':
-        return { backgroundColor: colors.primary };
+        return { 
+          backgroundColor: colors.primary,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 5,
+        };
       case 'secondary':
-        return { backgroundColor: colors.secondary };
+        return { 
+          backgroundColor: colors.secondary,
+          shadowColor: colors.secondary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 5,
+        };
       case 'outline':
-        return { backgroundColor: colors.transparent, borderWidth: 1, borderColor: colors.primary };
+        return { backgroundColor: colors.transparent, borderWidth: 1, borderColor: colors.border };
       case 'ghost':
         return { backgroundColor: colors.transparent };
       default:
-        return { backgroundColor: colors.primary };
+        return { 
+          backgroundColor: colors.primary,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 5,
+        };
     }
   };
 
@@ -73,7 +94,7 @@ export const Button: React.FC<ButtonProps> = ({
       style={[styles.container, getBackgroundStyle(), style]}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
       {loading ? (
         <ActivityIndicator color={textColor} />

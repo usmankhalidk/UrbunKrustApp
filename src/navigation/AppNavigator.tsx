@@ -28,7 +28,10 @@ export const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <StatusBar 
+        barStyle={isDark ? 'light-content' : 'dark-content'} 
+        backgroundColor={colors.background}
+      />
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {accessToken ? (
           <RootStack.Screen name="Main" component={MainNavigator} />

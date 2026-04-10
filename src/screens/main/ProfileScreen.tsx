@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
-import { 
-  LogOut, 
-  User, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  CreditCard, 
-  Users, 
-  UtensilsCrossed, 
-  ClipboardList, 
+import {
+  LogOut,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  CreditCard,
+  Users,
+  UtensilsCrossed,
+  ClipboardList,
   TrendingUp,
   AlertCircle
 } from 'lucide-react-native';
@@ -76,7 +76,7 @@ export const ProfileScreen = () => {
         {/* ── HEADER & COVER ── */}
         <View style={styles.headerArea}>
           <View style={[styles.coverPhoto, { backgroundColor: colors.primary + '20' }]} />
-          
+
           <View style={styles.avatarContainer}>
             {profile.logo ? (
               <Image source={{ uri: profile.logo }} style={styles.avatarImage} />
@@ -100,37 +100,37 @@ export const ProfileScreen = () => {
         </View>
 
         <View style={styles.statsRow}>
-            {/* Stats Cards */}
-            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={[styles.statIconWrap, { backgroundColor: '#3B82F611' }]}>
-                <ClipboardList color="#3B82F6" size={18} />
-              </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>{profile._count.orders}</Text>
-              <Text style={[styles.statLabel, { color: colors.subtext }]}>Orders</Text>
+          {/* Stats Cards */}
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statIconWrap, { backgroundColor: '#3B82F611' }]}>
+              <ClipboardList color="#3B82F6" size={18} />
             </View>
+            <Text style={[styles.statValue, { color: colors.text }]}>{profile._count.orders}</Text>
+            <Text style={[styles.statLabel, { color: colors.subtext }]}>Orders</Text>
+          </View>
 
-            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={[styles.statIconWrap, { backgroundColor: '#8B5CF611' }]}>
-                <UtensilsCrossed color="#8B5CF6" size={18} />
-              </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>{profile._count.menuCategories}</Text>
-              <Text style={[styles.statLabel, { color: colors.subtext }]}>Categories</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statIconWrap, { backgroundColor: '#8B5CF611' }]}>
+              <UtensilsCrossed color="#8B5CF6" size={18} />
             </View>
+            <Text style={[styles.statValue, { color: colors.text }]}>{profile._count.menuCategories}</Text>
+            <Text style={[styles.statLabel, { color: colors.subtext }]}>Categories</Text>
+          </View>
 
-            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={[styles.statIconWrap, { backgroundColor: '#F59E0B11' }]}>
-                <Users color="#F59E0B" size={18} />
-              </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>{profile._count.users}</Text>
-              <Text style={[styles.statLabel, { color: colors.subtext }]}>Staff</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statIconWrap, { backgroundColor: '#F59E0B11' }]}>
+              <Users color="#F59E0B" size={18} />
             </View>
+            <Text style={[styles.statValue, { color: colors.text }]}>{profile._count.users}</Text>
+            <Text style={[styles.statLabel, { color: colors.subtext }]}>Staff</Text>
+          </View>
         </View>
 
         {/* ── DETAILS SECTION ── */}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Contact Details</Text>
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            
+
             <View style={[styles.detailRow, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
               <Mail color={colors.subtext} size={moderateScale(18)} />
               <View style={styles.detailTextWrap}>
@@ -162,7 +162,7 @@ export const ProfileScreen = () => {
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Subscription</Text>
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            
+
             <View style={[styles.detailRow, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
               <TrendingUp color={colors.subtext} size={moderateScale(18)} />
               <View style={styles.detailTextWrap}>
@@ -199,15 +199,15 @@ export const ProfileScreen = () => {
 
         {/* ── FOOTER ── */}
         <View style={styles.footer}>
-          <Button 
-            title="Sign Out" 
+          <Button
+            title="Sign Out"
             onPress={handleLogout}
             icon={<LogOut color="#FFF" size={moderateScale(18)} />}
             style={styles.logoutButton}
           />
           <Text style={[styles.versionText, { color: colors.subtext }]}>POS Version 1.0.0</Text>
         </View>
-        
+
         <View style={{ height: verticalScale(40) }} />
       </ScrollView>
     </SafeAreaView>
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { justifyContent: 'center', alignItems: 'center' },
   errorText: { fontSize: moderateScale(14), textAlign: 'center', fontWeight: '500' },
-  
+
   headerArea: {
     alignItems: 'center',
     marginBottom: verticalScale(45),
