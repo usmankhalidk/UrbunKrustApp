@@ -56,7 +56,7 @@ export const Button: React.FC<ButtonProps> = ({
           elevation: 5,
         };
       case 'outline':
-        return { backgroundColor: colors.transparent, borderWidth: 1, borderColor: colors.border };
+        return { backgroundColor: colors.transparent, borderWidth: 1, borderColor: colors.primary };
       case 'ghost':
         return { backgroundColor: colors.transparent };
       default:

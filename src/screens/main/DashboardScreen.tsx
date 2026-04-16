@@ -32,6 +32,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { posService, PosOrder, PosCounter } from '../../services/posService';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 const ORDER_TYPE_TABS = ['ALL', 'DINE_IN', 'TAKEAWAY', 'DELIVERY'];
 const STATUS_TABS = ['ALL', 'PENDING', 'CONFIRMED', 'PREPARING', 'COMPLETED', 'CANCELLED'];
@@ -71,6 +72,7 @@ const TYPE_TAG_CONFIG: Record<string, { color: string; bg: string }> = {
 
 export const DashboardScreen = ({ navigation }: any) => {
   const { colors } = useTheme();
+  const { isTablet } = useResponsiveLayout();
 
   // Data
   const [orders, setOrders] = useState<PosOrder[]>([]);
@@ -177,7 +179,7 @@ export const DashboardScreen = ({ navigation }: any) => {
     const dateStr = createdAt.toLocaleDateString([], { day: '2-digit', month: 'short' });
 
     return (
-      <View style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.border }, isTablet && { flex: 1, marginHorizontal: scale(6), maxWidth: '50%' }]}>
         {/* Card Top Row */}
         <View style={styles.cardTopRow}>
           <View style={styles.cardTopLeft}>
@@ -381,6 +383,8 @@ export const DashboardScreen = ({ navigation }: any) => {
         </View>
       ) : (
         <FlatList
+          key={isTablet ? 2 : 1}
+          numColumns={isTablet ? 2 : 1}
           data={filteredOrders}
           keyExtractor={item => item.id}
           renderItem={renderOrderCard}

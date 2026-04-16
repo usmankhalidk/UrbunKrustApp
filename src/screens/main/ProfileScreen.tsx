@@ -19,9 +19,11 @@ import { useTheme } from '../../theme/ThemeContext';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Button } from '../../components/Button';
 import { posService, PosProfile } from '../../services/posService';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 export const ProfileScreen = () => {
   const { colors } = useTheme();
+  const { isTablet } = useResponsiveLayout();
   const { user, logout } = useAuthStore();
   const [profile, setProfile] = useState<PosProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,7 +74,7 @@ export const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={isTablet ? styles.tabletCenterInner : undefined}>
         {/* ── HEADER & COVER ── */}
         <View style={styles.headerArea}>
           <View style={[styles.coverPhoto, { backgroundColor: colors.primary + '20' }]} />
@@ -374,4 +376,10 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(11),
     fontWeight: '600',
   },
+  tabletCenterInner: {
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
+    paddingBottom: verticalScale(40),
+  }
 });

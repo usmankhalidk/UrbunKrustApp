@@ -7,9 +7,11 @@ import { useTheme } from '../../theme/ThemeContext';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { authService } from '../../services/authService';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 export const ForgotPasswordScreen = ({ navigation }: any) => {
   const { colors } = useTheme();
+  const { isTablet } = useResponsiveLayout();
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +46,7 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-          style={styles.innerContent}
+          style={[styles.innerContent, isTablet && styles.tabletCenter]}
         >
           <Button 
             title="" 
@@ -183,5 +185,10 @@ const styles = StyleSheet.create({
   successContainer: {
     width: '100%',
     marginTop: verticalScale(20),
-  }
+  },
+  tabletCenter: {
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
+  },
 });

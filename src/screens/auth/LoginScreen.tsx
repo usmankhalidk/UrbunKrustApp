@@ -9,9 +9,11 @@ import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 export const LoginScreen = ({ navigation }: any) => {
   const { colors } = useTheme();
+  const { isTablet } = useResponsiveLayout();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +25,7 @@ export const LoginScreen = ({ navigation }: any) => {
       setErrorMsg('Please enter email and password');
       return;
     }
-    
+
     setIsLoading(true);
     setErrorMsg('');
     try {
@@ -45,7 +47,7 @@ export const LoginScreen = ({ navigation }: any) => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.innerContent}
+          style={[styles.innerContent, isTablet && styles.tabletCenter]}
         >
           <View style={styles.headerContainer}>
             <View style={[styles.logoPlaceholder, { backgroundColor: colors.primary }]}>
@@ -189,5 +191,10 @@ const styles = StyleSheet.create({
   signupText: {
     fontSize: moderateScale(14),
     fontWeight: 'bold',
+  },
+  tabletCenter: {
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
   },
 });

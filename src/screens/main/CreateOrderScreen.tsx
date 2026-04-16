@@ -29,6 +29,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { posService, PosMenuItem, PosCategory, PosDeal, PosTable, PosCounter, PosVariant } from '../../services/posService';
 import { useCartStore } from '../../store/useCartStore';
 import { ImageWithSkeleton } from '../../components/ImageWithSkeleton';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 const TYPE_TABS = [
   { key: 'Menu Items', icon: 'utensils' },
@@ -41,6 +42,7 @@ const formatOrderTypeUI = (type: string) => type.replace('_', '-');
 
 export const CreateOrderScreen = () => {
   const { colors } = useTheme();
+  const { isTablet, isLandscape } = useResponsiveLayout();
 
   // Global Cart State
   const cart = useCartStore();
@@ -273,11 +275,11 @@ export const CreateOrderScreen = () => {
     );
   }
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
-      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
-        
-        {/* ── TOP TABS (Menu / Deals) ── */}
+  const productCardWidth = isTablet ? (isLandscape ? '23%' : '31%') : '48%';
+
+  const renderMenuContent = () => (
+    <>
+      {/* ── TOP TABS (Menu / Deals) ── */}
         <View style={[styles.topTabsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {TYPE_TABS.map(({ key, icon }) => {
             const isActive = activeTypeTab === key;
@@ -364,7 +366,7 @@ export const CreateOrderScreen = () => {
           {activeTypeTab === 'Menu Items' ? (
             filteredItems.length > 0 ? (
               filteredItems.map((item) => (
-                <TouchableOpacity key={item.id} style={[styles.productCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} activeOpacity={0.7} onPress={() => handleProductPress(item)}>
+                <TouchableOpacity key={item.id} style={[styles.productCard, { width: productCardWidth, backgroundColor: colors.surface, borderBottomColor: colors.border }]} activeOpacity={0.7} onPress={() => handleProductPress(item)}>
                   <View style={[styles.productImageBox, { backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' }]}>
                     {item.image ? (
                       <ImageWithSkeleton source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
@@ -387,7 +389,7 @@ export const CreateOrderScreen = () => {
           ) : (
             filteredDeals.length > 0 ? (
               filteredDeals.map((deal) => (
-                <TouchableOpacity key={deal.id} style={[styles.productCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} activeOpacity={0.7} onPress={() => handleDealPress(deal)}>
+                <TouchableOpacity key={deal.id} style={[styles.productCard, { width: productCardWidth, backgroundColor: colors.surface, borderBottomColor: colors.border }]} activeOpacity={0.7} onPress={() => handleDealPress(deal)}>
                   <View style={[styles.productImageBox, { backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' }]}>
                     {(deal as any).image ? (
                       <ImageWithSkeleton source={{ uri: (deal as any).image }} style={styles.productImage} resizeMode="cover" />
@@ -409,9 +411,13 @@ export const CreateOrderScreen = () => {
             )
           )}
         </View>
+    </>
+  );
 
-        {/* ── CHECKOUT FORM ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+  const renderFormAndBasket = () => (
+    <>
+      {/* ── CHECKOUT FORM ── */}
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {/* Order Type Tabs */}
           <View style={[styles.orderTypeRow, { borderBottomColor: colors.border }]}>
             {ORDER_TYPES.map((type) => {
@@ -609,9 +615,30 @@ export const CreateOrderScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+    </>
+  );
 
-
-      </ScrollView>
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      {isTablet ? (
+        <View style={styles.tabletSplitContainer}>
+          <View style={styles.tabletLeftCol}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.scrollContent, styles.tabletLeftScroll]}>
+              {renderMenuContent()}
+            </ScrollView>
+          </View>
+          <View style={[styles.tabletRightCol, { borderLeftColor: colors.border, backgroundColor: colors.surface }]}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.scrollContent, styles.tabletRightScroll]}>
+              {renderFormAndBasket()}
+            </ScrollView>
+          </View>
+        </View>
+      ) : (
+        <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
+          {renderMenuContent()}
+          {renderFormAndBasket()}
+        </ScrollView>
+      )}
 
       {/* ── VARIANT SELECTION MODAL ── */}
       <Modal
@@ -785,8 +812,8 @@ export const CreateOrderScreen = () => {
         </Animated.View>
       )}
 
-      {/* ── FLOATING CART BAR ── */}
-      {cart.items.length > 0 && (
+      {/* ── FLOATING CART BAR (Mobile Only) ── */}
+      {(!isTablet && cart.items.length > 0) && (
         <View style={[styles.floatingCartBar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
           <View>
             <Text style={[styles.floatingCartTitle, { color: colors.text }]}>{cart.items.length} Items</Text>
@@ -1179,5 +1206,22 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(13),
     fontWeight: '800',
     letterSpacing: 0.5,
+  },
+  tabletSplitContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  tabletLeftCol: {
+    flex: 6.5, // Approx 65% width
+  },
+  tabletRightCol: {
+    flex: 3.5, // Approx 35% width
+    borderLeftWidth: 1,
+  },
+  tabletLeftScroll: {
+    paddingRight: scale(10),
+  },
+  tabletRightScroll: {
+    paddingLeft: scale(10),
   }
 });
